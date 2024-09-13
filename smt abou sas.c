@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#define MAX_ETU 100
 #ifdef _WIN32
 #define CLEAR "cls"
 #else
@@ -20,10 +19,10 @@ typedef struct {
     char depar[100];        
     float note;    
 } Etudiant;
-Etudiant etudiants[MAX_ETU];
-int nombreEtudiants = 12;
-int count_math = 3, count_pc = 3, count_economie = 3, count_autre = 3;
-float sum_math = 3, sum_pc = 3, sum_economie = 3, sum_autre = 3;
+Etudiant etudiants[100];
+int nombreEtudiants = 0;
+int count_math = 0, count_pc = 0, count_economie = 0, count_autre = 0;
+float sum_math = 39.71, sum_pc = 44.71, sum_economie = 37.71, sum_autre = 37.65;
 Etudiant nvEtudiant; 
 void ajouterEtudiant() {
     if (nombreEtudiants >= MAX_ETU) {
@@ -52,7 +51,7 @@ void ajouterEtudiant() {
             strcpy(nvEtudiant.depar, "Autre");
             count_autre++;
     }
-    printf("Carte nationale de l'etudiant: ");
+    printf("Carte nationale de l etudiant (CID): ");
     fgets(nvEtudiant.carte_natio, sizeof(nvEtudiant.carte_natio), stdin);
     nvEtudiant.carte_natio[strcspn(nvEtudiant.carte_natio, "\n")] = '\0'; 
     printf("Nom: ");
@@ -154,36 +153,27 @@ void trierEtudiants() {
     scanf("%d", &choix);
     getchar();
     for (int i = 0; i < nombreEtudiants - 1; i++) {
-        for (int j = i + 1; j < nombreEtudiants; j++) {
+        for (int j = 0; j < nombreEtudiants - i - 1; j++) {
             if (choix == 1) {
-                if (strcmp(etudiants[i].nom, etudiants[j].nom) > 0) {
-                    Etudiant temp = etudiants[i];
-                    etudiants[i] = etudiants[j];
-                    etudiants[j] = temp;
+                if (strcmp(etudiants[j].nom, etudiants[j+1].nom) > 0) {
+                    Etudiant temp = etudiants[j];
+                    etudiants[j] = etudiants[j+1];
+                    etudiants[j+1] = temp;
                 }
             } else if (choix == 2) {
-                if (etudiants[i].note < etudiants[j].note) {
-                    Etudiant temp = etudiants[i];
-                    etudiants[i] = etudiants[j];
-                    etudiants[j] = temp;
+                if (etudiants[j].note < etudiants[j+1].note) {
+                    Etudiant temp = etudiants[j];
+                    etudiants[j] = etudiants[j+1];
+                    etudiants[j+1] = temp;
                 }
             } else if (choix == 3) {
-                if (etudiants[i].note > etudiants[j].note) {
-                    Etudiant temp = etudiants[i];
-                    etudiants[i] = etudiants[j];
-                    etudiants[j] = temp;
+                if (etudiants[j].note > etudiants[j+1].note) {
+                    Etudiant temp = etudiants[j];
+                    etudiants[j] = etudiants[j+1];
+                    etudiants[j+1] = temp;
                 }
             } 
         }
-    }
-    if (choix == 1) {
-        printf("Etudiants tries par ordre alphabetique.\n");
-    } else if (choix == 2) {
-        printf("Etudiants tries par moyenne generale (du plus eleve au plus faible).\n");
-    } else if (choix == 3) {
-        printf("Etudiants tries par moyenne generale (du plus faible au plus eleve).\n");
-    } else {
-        printf("Choix de tri invalide.\n");
     }
 }
 void modifierEtudiant() {
@@ -260,19 +250,22 @@ void supprimerEtudiant() {
     printf("Etudiant avec la carte nationale %s non trouve.\n", carteNatio);
 }
 void moyenneDepartement() {
-    printf("Moyenne generale pour sc math: %.2f\n", (count_math > 0) ? sum_math / count_math : 0);
-    printf("Moyenne generale pour sc physic: %.2f\n", (count_pc > 0) ? sum_pc / count_pc : 0);
-    printf("Moyenne generale pour economie: %.2f\n", (count_economie > 0) ? sum_economie / count_economie : 0);
-    float moyenne_universite = (count_math + count_pc + count_economie > 0) ?
-        (sum_math + sum_pc + sum_economie) / (count_math + count_pc + count_economie) : 0;
-    printf("Moyenne generale de l universite: %.2f\n", moyenne_universite);
+    float moy_maths = sum_math / count_math;
+    float moy_pc = sum_pc / count_pc;
+    float moy_eco = sum_economie / count_economie;
+    float moy_autre = sum_autre / count_autre;
+    printf("Moyenne generale pour sc math: %f\n", moy_maths);
+    printf("Moyenne generale pour sc physic: %f\n", moy_pc);
+    printf("Moyenne generale pour economie: %f\n", moy_eco);
+    float moy_uni = (moy_autre + moy_maths + moy_pc + moy_eco) / 4;
+    printf("Moyenne generale de l universite: %f\n", moy_uni);
 }
 void afficherParDepartement() {
     char departement[100];
     printf("Choisissez le departement (sc math, sc physic, economie): ");
     fgets(departement, sizeof(departement), stdin);
     departement[strcspn(departement, "\n")] = '\0';
-    printf("\n=== Étudiants du departement %s ===\n", departement);
+    printf("\n********** Étudiants du departement %s *********\n", departement);
     int found = 0;
     for (int i = 0; i < nombreEtudiants; i++) {
         if (strcmp(etudiants[i].depar, departement) == 0) {
@@ -290,7 +283,7 @@ void rechercherParNom() {
     fgets(nomRecherche, sizeof(nomRecherche), stdin);
     nomRecherche[strcspn(nomRecherche, "\n")] = '\0'; 
     int found = 0;
-    printf("\n=== Etudiants avec le nom '%s' ===\n", nomRecherche);
+    printf("\n********** Etudiants avec le nom '%s' ********\n", nomRecherche);
     for (int i = 0; i < nombreEtudiants; i++) {
         if (strcmp(etudiants[i].nom, nomRecherche) == 0) {
             afficherEtudiant(etudiants[i]);
@@ -301,10 +294,13 @@ void rechercherParNom() {
         printf("Aucun etudiant trouve avec le nom '%s'.\n", nomRecherche);
     }
 }
+void Stats(){
+    
+}
 void afficherMenu() {
     int choix;
     do {
-        printf("\n=== Menu Principal ===\n");
+        printf("\n********* Menu Principal *******\n");
         printf("1. Ajouter un etudiant\n");
         printf("2. Modifier un etudiant\n");
         printf("3. Supprimer un etudiant\n");
@@ -363,18 +359,24 @@ int main() {
     strcpy(etudiants[0].ddn, "2006-05-17");
     strcpy(etudiants[0].depar, "sc math");
     etudiants[0].note = 18.53;
+    count_math++;
+    nombreEtudiants++;
     strcpy(etudiants[1].carte_natio, "HH4000");
     strcpy(etudiants[1].nom, "Yzaa");
     strcpy(etudiants[1].prenom, "Wassim");
     strcpy(etudiants[1].ddn, "2006-05-01");
     strcpy(etudiants[1].depar, "sc math");
     etudiants[1].note = 16.25;
+    count_math++;
+    nombreEtudiants++;
     strcpy(etudiants[2].carte_natio, "HH7800");
     strcpy(etudiants[2].nom, "Laagal");
     strcpy(etudiants[2].prenom, "Aya");
     strcpy(etudiants[2].ddn, "2006-03-17");
     strcpy(etudiants[2].depar, "sc math");
     etudiants[2].note = 4.93;
+    count_math++;
+    nombreEtudiants++;
     //physique
     strcpy(etudiants[3].carte_natio, "HH7800");
     strcpy(etudiants[3].nom, "Hanzaz");
@@ -382,18 +384,24 @@ int main() {
     strcpy(etudiants[3].ddn, "2006-02-17");
     strcpy(etudiants[3].depar, "sc physic");
     etudiants[3].note = 17.53;
+    count_pc++;
+    nombreEtudiants++;
     strcpy(etudiants[4].carte_natio, "HH1530");
     strcpy(etudiants[4].nom, "Aanab");
     strcpy(etudiants[4].prenom, "Hossam");
     strcpy(etudiants[4].ddn, "2006-07-14");
     strcpy(etudiants[4].depar, "sc physic");
     etudiants[4].note = 14.25;
+    count_pc++;
+    nombreEtudiants++;
     strcpy(etudiants[5].carte_natio, "HH5040");
     strcpy(etudiants[5].nom, "Saoud");
     strcpy(etudiants[5].prenom, "Othman");
     strcpy(etudiants[5].ddn, "2006-03-17");
     strcpy(etudiants[5].depar, "sc physic");
     etudiants[5].note = 12.93;
+    count_pc++;
+    nombreEtudiants++;
     //economie
     strcpy(etudiants[6].carte_natio, "HH5000");
     strcpy(etudiants[6].nom, "Sehnani");
@@ -401,18 +409,24 @@ int main() {
     strcpy(etudiants[6].ddn, "2004-06-19");
     strcpy(etudiants[6].depar, "economie");
     etudiants[6].note = 18.53;
+    count_economie++;
+    nombreEtudiants++;
     strcpy(etudiants[7].carte_natio, "HH4000");
     strcpy(etudiants[7].nom, "Bootahlil");
     strcpy(etudiants[7].prenom, "Yasmin");
     strcpy(etudiants[7].ddn, "2005-03-05");
     strcpy(etudiants[7].depar, "economie");
     etudiants[7].note = 6.25;
+    count_economie++;
+    nombreEtudiants++;
     strcpy(etudiants[8].carte_natio, "HH7800");
     strcpy(etudiants[8].nom, "Nghraoui");
     strcpy(etudiants[8].prenom, "Sami");
     strcpy(etudiants[8].ddn, "2004-08-27");
     strcpy(etudiants[8].depar, "economie");
     etudiants[8].note = 12.93;
+    count_economie++;
+    nombreEtudiants++;
     //autre
     strcpy(etudiants[9].carte_natio, "HH7800");
     strcpy(etudiants[9].nom, "Bahi");
@@ -420,19 +434,25 @@ int main() {
     strcpy(etudiants[9].ddn, "2007-01-12");
     strcpy(etudiants[9].depar, "Autre");
     etudiants[9].note = 8.64;
+    count_autre++;
+    nombreEtudiants++;
     strcpy(etudiants[10].carte_natio, "HH1530");
     strcpy(etudiants[10].nom, "Ikhwan");
     strcpy(etudiants[10].prenom, "Hosni");
     strcpy(etudiants[10].ddn, "2005-06-21");
     strcpy(etudiants[10].depar, "Autre");
     etudiants[10].note = 12.69;
+    count_autre++;
+    nombreEtudiants++;
     strcpy(etudiants[11].carte_natio, "HH5040");
     strcpy(etudiants[11].nom, "Lfeni");
     strcpy(etudiants[11].prenom, "Kaotar");
     strcpy(etudiants[11].ddn, "2006-12-19");
     strcpy(etudiants[11].depar, "Autre");
     etudiants[11].note = 16.32;
+    count_autre++;
+    nombreEtudiants++;
 
     afficherMenu();
     return 0;
-}   
+}
